@@ -46,11 +46,7 @@ management:
   endpoint:
     health:
       show-details: always
-  server:
-    # Actuator也使用HTTPS
-    ssl:
-      enabled: true
-      
+
 app:
   instance:
     id: ${INSTANCE_ID:${random.uuid}}

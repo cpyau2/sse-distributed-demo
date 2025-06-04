@@ -49,10 +49,15 @@ interface ConnectionInfo {
 }
 
 const App: React.FC = () => {
+  // 根據當前協議動態選擇端口
+  const isHttps = window.location.protocol === 'https:'
+  const baseProtocol = isHttps ? 'https' : 'http'
+  const ports = isHttps ? [8443, 8444, 8445] : [8080, 8081, 8082]
+  
   const [servers, setServers] = useState<ServerInstance[]>([
-    { url: 'http://localhost:8080', name: 'Instance 1', connected: false },
-    { url: 'http://localhost:8081', name: 'Instance 2', connected: false },
-    { url: 'http://localhost:8082', name: 'Instance 3', connected: false },
+    { url: `${baseProtocol}://localhost:${ports[0]}`, name: 'Instance 1', connected: false },
+    { url: `${baseProtocol}://localhost:${ports[1]}`, name: 'Instance 2', connected: false },
+    { url: `${baseProtocol}://localhost:${ports[2]}`, name: 'Instance 3', connected: false },
   ])
   
   const [messages, setMessages] = useState<SseMessage[]>([])
@@ -299,7 +304,8 @@ const App: React.FC = () => {
       <header className="app-header">
         <h1>SSE 分散式部署研究平台</h1>
         <div className="client-info">
-          Client ID: <code>{clientId.current}</code>
+          <div>Client ID: <code>{clientId.current}</code></div>
+          <div>協議模式: <code>{isHttps ? 'HTTPS' : 'HTTP'}</code> | 後端端口: <code>{ports.join(', ')}</code></div>
         </div>
       </header>
 

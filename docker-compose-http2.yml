@@ -106,7 +106,7 @@ services:
       timeout: 5s
       retries: 5
 
-  nginx-http2:
+  nginx:
     build:
       context: ./nginx
       dockerfile: Dockerfile-nginx-http2
@@ -128,7 +128,7 @@ services:
       - "3000:80"
       - "3443:443"
     depends_on:
-      - nginx-http2
+      - nginx
     networks:
       - sse-network
 
