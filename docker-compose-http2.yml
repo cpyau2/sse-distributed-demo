@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-1:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    environment:
+      - SERVER_PORT=8443
+      - INSTANCE_ID=backend-1
+      - INSTANCE_NAME=Backend-1
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_TIMEOUT=5000
+      - SPRING_PROFILES_ACTIVE=docker,http2
+      - SSL_ENABLED=true
+      - SSL_KEYSTORE=classpath:ssl/keystore.p12
+      - SSL_KEYSTORE_PASSWORD=changeit
+      - SSL_KEYSTORE_TYPE=PKCS12
+      - SSL_KEY_ALIAS=sse-demo
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:8443/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-2:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+      - "8444:8443"
+    environment:
+      - SERVER_PORT=8443
+      - INSTANCE_ID=backend-2
+      - INSTANCE_NAME=Backend-2
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_TIMEOUT=5000
+      - SPRING_PROFILES_ACTIVE=docker,http2
+      - SSL_ENABLED=true
+      - SSL_KEYSTORE=classpath:ssl/keystore.p12
+      - SSL_KEYSTORE_PASSWORD=changeit
+      - SSL_KEYSTORE_TYPE=PKCS12
+      - SSL_KEY_ALIAS=sse-demo
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:8443/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-3:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+      - "8445:8443"
+    environment:
+      - SERVER_PORT=8443
+      - INSTANCE_ID=backend-3
+      - INSTANCE_NAME=Backend-3
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_TIMEOUT=5000
+      - SPRING_PROFILES_ACTIVE=docker,http2
+      - SSL_ENABLED=true
+      - SSL_KEYSTORE=classpath:ssl/keystore.p12
+      - SSL_KEYSTORE_PASSWORD=changeit
+      - SSL_KEYSTORE_TYPE=PKCS12
+      - SSL_KEY_ALIAS=sse-demo
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:8443/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx-http2:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile-nginx-http2
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend-1
+      - backend-2
+      - backend-3
+    networks:
+      - sse-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+      - "3443:443"
+    depends_on:
+      - nginx-http2
+    networks:
+      - sse-network
+
+networks:
+  sse-network:
+    driver: bridge 

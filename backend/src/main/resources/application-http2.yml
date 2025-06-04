@@ -1,0 +1,67 @@
+server:
+  port: ${SERVER_PORT:8080}
+  # HTTP/2 和 SSL 配置
+  http2:
+    enabled: true
+  ssl:
+    enabled: ${SSL_ENABLED:true}
+    key-store: ${SSL_KEYSTORE:classpath:ssl/keystore.p12}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:changeit}
+    key-store-type: ${SSL_KEYSTORE_TYPE:PKCS12}
+    key-alias: ${SSL_KEY_ALIAS:sse-demo}
+    # 額外的SSL設置
+    protocol: TLS
+    enabled-protocols: TLSv1.2,TLSv1.3
+    ciphers: ECDHE-RSA-AES128-GCM-SHA256,ECDHE-RSA-AES256-GCM-SHA384,ECDHE-RSA-AES128-SHA256,ECDHE-RSA-AES256-SHA384
+
+spring:
+  application:
+    name: sse-demo-service-http2
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      timeout: ${SPRING_DATA_REDIS_TIMEOUT:5000}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 0
+        shutdown-timeout: 100ms
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  server:
+    # Actuator也使用HTTPS
+    ssl:
+      enabled: true
+      
+app:
+  instance:
+    id: ${INSTANCE_ID:${random.uuid}}
+    name: ${INSTANCE_NAME:instance-http2}
+  sse:
+    timeout: 3600000 # 1 hour
+    heartbeat-interval: 30000 # 30 seconds
+  cors:
+    allowed-origins: ${CORS_ORIGINS:https://localhost:3443,https://localhost:443,http://localhost:3000}
+    
+logging:
+  level:
+    com.example.sse: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.SseEmitter: DEBUG 
