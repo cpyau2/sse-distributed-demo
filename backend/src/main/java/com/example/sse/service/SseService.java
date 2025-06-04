@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.HashMap;
 
 @Slf4j
 @Service
@@ -51,6 +52,7 @@ public class SseService {
     
     private static final String REDIS_CHANNEL = "sse:broadcast";
     private static final String INSTANCE_KEY_PREFIX = "sse:instance:";
+    private static final String TARGETED_CHANNEL_PREFIX = "sse:server:";
     
     // @PostConstruct
     // public void init() {
@@ -109,6 +111,32 @@ public class SseService {
                 .subscribe(
                     null,
                     error -> log.error("Fatal error in Redis subscription: {}", error.getMessage(), error)
+                );
+            
+            // Subscribe to this instance's specific channel
+            String instanceChannel = TARGETED_CHANNEL_PREFIX + instanceId;
+            redisTemplate.listenToChannel(instanceChannel)
+                .doOnSubscribe(subscription -> {
+                    log.info("Subscribing to instance-specific Redis channel: {}", instanceChannel);
+                })
+                .doOnNext(message -> {
+                    try {
+                        log.debug("Received targeted message from Redis: {}", message);
+                        SseMessage sseMessage = objectMapper.readValue(
+                            message.getMessage(), SseMessage.class);
+                        log.debug("Parsed targeted message from Redis: {}", sseMessage);
+                        processTargetedMessage(sseMessage).subscribe();
+                    } catch (Exception e) {
+                        log.error("Error processing targeted Redis message: {}", e.getMessage(), e);
+                    }
+                })
+                .doOnError(error -> {
+                    log.error("Error in targeted Redis subscription: {}", error.getMessage(), error);
+                })
+                .subscribeOn(Schedulers.parallel())
+                .subscribe(
+                    null,
+                    error -> log.error("Fatal error in targeted Redis subscription: {}", error.getMessage(), error)
                 );
             
             // Register instance in Redis
@@ -256,6 +284,65 @@ public class SseService {
         });
     }
     
+    public Mono<Void> sendToServer(String serverId, BroadcastRequest request) {
+        SseMessage message = SseMessage.builder()
+            .id(generateEventId())
+            .type(request.getType() != null ? request.getType() : "SERVER_MESSAGE")
+            .data(request.getData())
+            .timestamp(LocalDateTime.now())
+            .source(instanceId)
+            .metadata(request.getMetadata())
+            .build();
+        
+        String targetChannel = TARGETED_CHANNEL_PREFIX + serverId;
+        return redisTemplate.convertAndSend(targetChannel, serialize(message))
+            .doOnSuccess(count -> log.info("Message sent to server {} (subscribers: {})", serverId, count))
+            .doOnSuccess(v -> messageCounter.incrementAndGet())
+            .then();
+    }
+    
+    public Mono<Void> sendToClientOnServer(String serverId, String clientId, BroadcastRequest request) {
+        // Create a targeted message with client ID in metadata
+        BroadcastRequest targetedRequest = new BroadcastRequest();
+        targetedRequest.setType(request.getType() != null ? request.getType() : "CLIENT_ON_SERVER");
+        targetedRequest.setData(request.getData());
+        
+        // Add client targeting information in metadata
+        Map<String, Object> metadata = request.getMetadata() != null ? 
+            new HashMap<>(request.getMetadata()) : new HashMap<>();
+        metadata.put("targetClientId", clientId);
+        metadata.put("messageType", "CLIENT_TARGETED");
+        targetedRequest.setMetadata(metadata);
+        
+        return sendToServer(serverId, targetedRequest);
+    }
+    
+    public Mono<Object> getAvailableServers() {
+        String pattern = INSTANCE_KEY_PREFIX + "*";
+        return redisTemplate.keys(pattern)
+            .flatMap(key -> redisTemplate.opsForValue().get(key))
+            .filter(value -> value != null)
+            .map(value -> {
+                try {
+                    return objectMapper.readValue(value, InstanceInfo.class);
+                } catch (Exception e) {
+                    log.warn("Failed to parse instance info: {}", value);
+                    return null;
+                }
+            })
+            .filter(info -> info != null)
+            .collectList()
+            .map(instances -> Map.of(
+                "currentInstance", Map.of(
+                    "instanceId", instanceId,
+                    "instanceName", instanceName,
+                    "activeConnections", connections.size()
+                ),
+                "availableServers", instances,
+                "totalServers", instances.size()
+            ));
+    }
+    
     @Scheduled(fixedDelayString = "${app.sse.heartbeat-interval}")
     public void sendHeartbeat() {
         if (connections.isEmpty()) {
@@ -377,5 +464,27 @@ public class SseService {
             "used", usedMemory,
             "free", freeMemory
         );
+    }
+    
+    private Mono<Void> processTargetedMessage(SseMessage message) {
+        // Check if this is a client-targeted message
+        if (message.getMetadata() != null && 
+            "CLIENT_TARGETED".equals(message.getMetadata().get("messageType"))) {
+            
+            String targetClientId = (String) message.getMetadata().get("targetClientId");
+            if (targetClientId != null) {
+                ClientConnection connection = connections.get(targetClientId);
+                if (connection != null) {
+                    sendEventToClient(connection, message);
+                    log.info("Delivered targeted message to client {} on this instance", targetClientId);
+                } else {
+                    log.warn("Target client {} not found on this instance", targetClientId);
+                }
+            }
+        } else {
+            // Regular server-targeted message, distribute to all local clients
+            return distributeToLocalClients(message);
+        }
+        return Mono.empty();
     }
 }

@@ -48,6 +48,23 @@ public class SseController {
         return sseService.sendToClient(clientId, request);
     }
     
+    @PostMapping("/broadcast/server/{serverId}")
+    public Mono<Void> sendToServer(
+            @PathVariable String serverId,
+            @RequestBody BroadcastRequest request) {
+        log.info("Sending message to server {}: {}", serverId, request);
+        return sseService.sendToServer(serverId, request);
+    }
+    
+    @PostMapping("/broadcast/server/{serverId}/client/{clientId}")
+    public Mono<Void> sendToClientOnServer(
+            @PathVariable String serverId,
+            @PathVariable String clientId,
+            @RequestBody BroadcastRequest request) {
+        log.info("Sending message to client {} on server {}: {}", clientId, serverId, request);
+        return sseService.sendToClientOnServer(serverId, clientId, request);
+    }
+    
     @GetMapping("/connections")
     public Mono<ConnectionInfo> getConnections() {
         return sseService.getConnectionInfo();
@@ -56,6 +73,12 @@ public class SseController {
     @GetMapping("/metrics")
     public Mono<InstanceMetrics> getMetrics() {
         return sseService.getInstanceMetrics();
+    }
+    
+    @GetMapping("/servers")
+    public Mono<Object> getAvailableServers() {
+        log.info("Getting available servers");
+        return sseService.getAvailableServers();
     }
     
     @DeleteMapping("/connections/{clientId}")

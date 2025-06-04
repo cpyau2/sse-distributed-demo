@@ -82,7 +82,7 @@ if %errorlevel%==0 (
 echo.
 echo 4. Starting Backend Instance (Port 8080)...
 cd backend
-start "Backend-1 (Port 8080)" cmd /k "set SERVER_PORT=8080 && set INSTANCE_ID=backend-1 && set INSTANCE_NAME=Backend-1 && set SPRING_DATA_REDIS_HOST=localhost && .\gradlew bootRun --no-daemon"
+start "Backend-1 (Port 8080)" cmd /k "set SERVER_PORT=8080 && set INSTANCE_ID=backend-1 && set INSTANCE_NAME=Backend-1 && set SPRING_DATA_REDIS_HOST=127.0.0.1 && .\gradlew bootRun --no-daemon"
 cd ..
 
 echo.
@@ -115,7 +115,7 @@ if %errorlevel%==0 (
 echo.
 echo 4. Starting Backend Instance 1 (Port 8080)...
 cd backend
-start "Backend-1 (Port 8080)" cmd /k "set SERVER_PORT=8080 && set INSTANCE_ID=backend-1 && set INSTANCE_NAME=Backend-1 && set SPRING_DATA_REDIS_HOST=localhost && .\gradlew bootRun --no-daemon"
+start "Backend-1 (Port 8080)" cmd /k "set SERVER_PORT=8080 && set INSTANCE_ID=backend-1 && set INSTANCE_NAME=Backend-1 && set SPRING_DATA_REDIS_HOST=127.0.0.1 && .\gradlew bootRun --no-daemon"
 
 echo.
 echo 5. Waiting 10 seconds before starting next instance...
@@ -123,7 +123,7 @@ timeout /t 10 /nobreak
 
 echo.
 echo 6. Starting Backend Instance 2 (Port 8081)...
-start "Backend-2 (Port 8081)" cmd /k "set SERVER_PORT=8081 && set INSTANCE_ID=backend-2 && set INSTANCE_NAME=Backend-2 && set SPRING_DATA_REDIS_HOST=localhost && .\gradlew bootRun --no-daemon"
+start "Backend-2 (Port 8081)" cmd /k "set SERVER_PORT=8081 && set INSTANCE_ID=backend-2 && set INSTANCE_NAME=Backend-2 && set SPRING_DATA_REDIS_HOST=127.0.0.1 && .\gradlew bootRun --no-daemon"
 cd ..
 
 echo.
@@ -156,7 +156,7 @@ if %errorlevel%==0 (
 echo.
 echo 4. Starting Backend Instance 1 (Port 8080)...
 cd backend
-start "Backend-1 (Port 8080)" cmd /k "set SERVER_PORT=8080 && set INSTANCE_ID=backend-1 && set INSTANCE_NAME=Backend-1 && set SPRING_DATA_REDIS_HOST=localhost && .\gradlew bootRun --no-daemon"
+start "Backend-1 (Port 8080)" cmd /k "set SERVER_PORT=8080 && set INSTANCE_ID=backend-1 && set INSTANCE_NAME=Backend-1 && set SPRING_DATA_REDIS_HOST=127.0.0.1 && .\gradlew bootRun --no-daemon"
 
 echo.
 echo 5. Waiting 10 seconds before starting next instance...
@@ -164,7 +164,7 @@ timeout /t 10 /nobreak
 
 echo.
 echo 6. Starting Backend Instance 2 (Port 8081)...
-start "Backend-2 (Port 8081)" cmd /k "set SERVER_PORT=8081 && set INSTANCE_ID=backend-2 && set INSTANCE_NAME=Backend-2 && set SPRING_DATA_REDIS_HOST=localhost && .\gradlew bootRun --no-daemon"
+start "Backend-2 (Port 8081)" cmd /k "set SERVER_PORT=8081 && set INSTANCE_ID=backend-2 && set INSTANCE_NAME=Backend-2 && set SPRING_DATA_REDIS_HOST=127.0.0.1 && .\gradlew bootRun --no-daemon"
 
 echo.
 echo 7. Waiting 10 seconds before starting next instance...
@@ -172,7 +172,7 @@ timeout /t 10 /nobreak
 
 echo.
 echo 8. Starting Backend Instance 3 (Port 8082)...
-start "Backend-3 (Port 8082)" cmd /k "set SERVER_PORT=8082 && set INSTANCE_ID=backend-3 && set INSTANCE_NAME=Backend-3 && set SPRING_DATA_REDIS_HOST=localhost && .\gradlew bootRun --no-daemon"
+start "Backend-3 (Port 8082)" cmd /k "set SERVER_PORT=8082 && set INSTANCE_ID=backend-3 && set INSTANCE_NAME=Backend-3 && set SPRING_DATA_REDIS_HOST=127.0.0.1 && .\gradlew bootRun --no-daemon"
 cd ..
 
 echo.

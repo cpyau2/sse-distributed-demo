@@ -17,11 +17,11 @@ for %%i in (8080 8081 8082) do (
 
 echo.
 echo 2. Getting connection info from each backend...
-for %%i in (8080 8081 8082) do (
-    echo Backend %%i connections:
-    curl -s http://localhost:%%i/api/sse/connections 2>nul | jq . 2>nul || echo "  Unable to get connection info"
-    echo.
-)
+@REM for %%i in (8080 8081 8082) do (
+@REM     echo Backend %%i connections:
+@REM     curl -s http://localhost:%%i/api/sse/connections 2>nul | jq . 2>nul || echo "  Unable to get connection info"
+@REM     echo.
+@REM )
 
 echo.
 echo 3. Testing broadcast from Backend-1 (Port 8080)...
