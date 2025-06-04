@@ -1,0 +1,58 @@
+server:
+  port: ${SERVER_PORT:8080}
+  # 暫時禁用 HTTP/2 和 SSL 用於開發
+  # http2:
+  #   enabled: true
+  # ssl:
+  #   enabled: ${SSL_ENABLED:false}
+  #   key-store: ${SSL_KEYSTORE:classpath:ssl/keystore.p12}
+  #   key-store-password: ${SSL_KEYSTORE_PASSWORD:changeit}
+  #   key-store-type: ${SSL_KEYSTORE_TYPE:PKCS12}
+  #   key-alias: ${SSL_KEY_ALIAS:sse-demo}
+  
+spring:
+  application:
+    name: sse-demo-service
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      timeout: ${SPRING_DATA_REDIS_TIMEOUT:5000}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 0
+        shutdown-timeout: 100ms
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      
+app:
+  instance:
+    id: ${INSTANCE_ID:${random.uuid}}
+    name: ${INSTANCE_NAME:instance-local}
+  sse:
+    timeout: 3600000 # 1 hour
+    heartbeat-interval: 30000 # 30 seconds
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
+    
+logging:
+  level:
+    com.example.sse: DEBUG

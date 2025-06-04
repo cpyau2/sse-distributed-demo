@@ -1,0 +1,22 @@
+FROM nginx:alpine
+
+# Install OpenSSL for certificate generation
+RUN apk add --no-cache openssl
+
+# Create SSL directory
+RUN mkdir -p /etc/nginx/conf.d
+
+# Generate self-signed SSL certificate for development
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/nginx/conf.d/server.key \
+    -out /etc/nginx/conf.d/server.crt \
+    -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
+
+# Copy custom nginx configuration
+COPY nginx-http2.conf /etc/nginx/nginx.conf
+
+# Expose ports
+EXPOSE 80 443
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"] 
