@@ -1,22 +1,28 @@
 FROM nginx:alpine
 
-# Install OpenSSL for certificate generation
-RUN apk add --no-cache openssl
+# Install OpenSSL for potential troubleshooting
+RUN apk add --no-cache openssl curl
 
-# Create SSL directory
-RUN mkdir -p /etc/nginx/conf.d
-
-# Generate self-signed SSL certificate for development
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /etc/nginx/conf.d/server.key \
-    -out /etc/nginx/conf.d/server.crt \
-    -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
+# Create SSL directory for mounted certificates
+RUN mkdir -p /etc/nginx/ssl
 
 # Copy custom nginx configuration
 COPY nginx-http2.conf /etc/nginx/nginx.conf
 
+# Create a startup script to verify SSL certificates
+RUN echo '#!/bin/sh' > /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo 'echo "🔍 Checking SSL certificates..."' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo 'if [ ! -f /etc/nginx/ssl/server.crt ] || [ ! -f /etc/nginx/ssl/server.key ]; then' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo '    echo "❌ SSL certificates not found!"' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo '    echo "Please run: scripts/generate-ssl-certs.bat"' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo '    exit 1' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo 'else' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo '    echo "✅ SSL certificates found and ready"' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    echo 'fi' >> /docker-entrypoint.d/99-verify-ssl.sh && \
+    chmod +x /docker-entrypoint.d/99-verify-ssl.sh
+
 # Expose ports
 EXPOSE 80 443
 
-# Start nginx
+# Use default nginx entrypoint (will run our verification script)
 CMD ["nginx", "-g", "daemon off;"] 

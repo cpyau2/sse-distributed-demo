@@ -22,9 +22,33 @@
 - ✅ **協議感知** - 前端自動偵測HTTP/HTTPS並選擇對應後端端口
 - ✅ **容器化部署** - Docker Compose一鍵部署
 - ✅ **現代化架構** - WebFlux非阻塞、React Hook、TypeScript強類型
+- ✅ **雙環境支援** - 開發環境(HTTP) + 生產環境(HTTPS/HTTP2)
 
 ## 🏗️ 系統架構
 
+### 🔷 開發環境架構 (HTTP)
+```
+┌─────────────────┐    HTTP/1.1         ┌──────────────────┐
+│   React前端     │ ───────────────────► │  Nginx負載均衡器   │
+│  localhost:3000 │                     │   localhost:80    │
+└─────────────────┘                     └──────────────────┘
+                                                   │
+                              ┌────────────────────┼────────────────────┐
+                              │                    │                    │
+                      ┌───────▼────────┐ ┌────────▼────────┐ ┌────────▼────────┐
+                      │  Backend-1     │ │  Backend-2      │ │  Backend-3      │
+                      │  localhost:8080│ │ localhost:8081  │ │ localhost:8082  │
+                      └───────┬────────┘ └────────┬────────┘ └────────┬────────┘
+                              │                   │                   │
+                              └───────────────────┼───────────────────┘
+                                                  │
+                                          ┌───────▼────────┐
+                                          │     Redis      │
+                                          │  localhost:6379│
+                                          └────────────────┘
+```
+
+### 🔶 生產環境架構 (HTTPS/HTTP2)
 ```
 ┌─────────────────┐    HTTPS/HTTP/2     ┌──────────────────┐
 │   React前端     │ ───────────────────► │  Nginx負載均衡器   │
@@ -40,10 +64,11 @@
                               │                   │                   │
                               └───────────────────┼───────────────────┘
                                                   │
-                                          ┌───────▼────────┐
-                                          │  Redis Cluster │
-                                          │  localhost:6379│
-                                          └────────────────┘
+                                    ┌─────────────▼─────────────┐
+                                    │   Redis Secure Cluster   │
+                                    │    localhost:6379        │
+                                    │  + Redis Commander:8090  │
+                                    └───────────────────────────┘
 ```
 
 ## 🔧 快速開始
@@ -56,28 +81,34 @@
 
 ### 🚀 一鍵啟動
 
-#### HTTP/2 + HTTPS模式（推薦）
+#### 🔶 HTTPS/HTTP2 生產環境（推薦）
 ```bash
-# 啟動HTTP/2完整系統
-docker-compose -f docker-compose-http2.yml up --build -d
+# 1. 生成SSL證書 (首次運行必須)
+scripts\generate-ssl-certs.bat
 
-# 檢查服務狀態
-docker-compose -f docker-compose-http2.yml ps
+# 2. 啟動生產環境
+docker-compose -f docker-compose-prod.yml up --build -d
 
-# 查看日誌
-docker-compose -f docker-compose-http2.yml logs -f
+# 3. 檢查服務狀態
+docker-compose -f docker-compose-prod.yml ps
+
+# 4. 查看日誌
+docker-compose -f docker-compose-prod.yml logs -f
 ```
 
-#### HTTP/1.1模式
+#### 🔷 HTTP 開發環境
 ```bash
-# 啟動標準HTTP系統
+# 啟動開發環境
 docker-compose up --build -d
+
+# 檢查服務狀態
+docker-compose ps
 ```
 
 ### 🌐 服務訪問
 
-| 服務 | HTTP模式 | HTTPS模式 | 說明 |
-|------|---------|-----------|------|
+| 服務 | 開發環境 (HTTP) | 生產環境 (HTTPS) | 說明 |
+|------|----------------|-----------------|------|
 | **前端界面** | `http://localhost:3000` | `https://localhost:3443` | React應用主界面 |
 | **負載均衡器** | `http://localhost:80` | `https://localhost:443` | Nginx負載均衡 |
 | **API閘道** | `http://localhost/api/*` | `https://localhost/api/*` | 統一API入口 |
@@ -86,6 +117,7 @@ docker-compose up --build -d
 | **後端實例2** | `http://localhost:8081` | `https://localhost:8444` | 直接訪問實例2 |
 | **後端實例3** | `http://localhost:8082` | `https://localhost:8445` | 直接訪問實例3 |
 | **Redis** | `localhost:6379` | `localhost:6379` | 資料庫 |
+| **Redis Commander** | - | `http://localhost:8090` | Redis管理界面 |
 
 ## 🎮 功能展示
 
@@ -119,15 +151,22 @@ sse-distributed-demo/
 ├── backend/                 # Spring Boot WebFlux後端
 │   ├── src/main/java/       # Java源碼
 │   ├── src/main/resources/  # 配置文件
+│   │   └── ssl/            # SSL證書目錄
 │   └── build.gradle         # Gradle構建配置
 ├── frontend/                # React TypeScript前端
 │   ├── src/                 # 源碼
 │   ├── package.json         # NPM配置
 │   └── nginx.conf           # Nginx配置
 ├── nginx/                   # 負載均衡器配置
-├── docker-compose.yml       # HTTP/1.1部署配置
-├── docker-compose-http2.yml # HTTP/2部署配置
-└── scripts/                 # 測試腳本
+│   ├── nginx.conf          # HTTP配置
+│   ├── nginx-http2.conf    # HTTP/2配置
+│   ├── Dockerfile-nginx-http2
+│   └── ssl/                # Nginx SSL證書目錄
+├── redis/                   # Redis配置
+├── scripts/                 # 測試和工具腳本
+├── docker-compose.yml       # 開發環境配置 (HTTP)
+├── docker-compose-prod.yml  # 生產環境配置 (HTTPS/HTTP2)
+└── fix-chinese-display.bat  # 中文顯示修復工具
 ```
 
 ### 🔨 本地開發
@@ -159,26 +198,29 @@ docker run -d -p 6379:6379 redis:7-alpine
 #### Windows測試
 ```batch
 # HTTP/2完整測試
-test-http2.bat
+scripts\test-http2.bat
 
 # 分散式負載測試
-test-distribution.bat
+scripts\test-distribution.bat
 
-# 私訊功能測試
-test-direct-messages.bat
+# 系統監控
+scripts\monitor-servers.bat
 ```
 
 #### 手動測試
 ```bash
-# 健康檢查
-curl -k https://localhost:443/health
+# 健康檢查 (開發環境)
+curl http://localhost/health
 
-# SSE連接測試
+# 健康檢查 (生產環境)
+curl -k https://localhost/health
+
+# SSE連接測試 (HTTPS)
 curl -k -N -H "Accept: text/event-stream" \
-  "https://localhost:443/api/sse/stream?clientId=test-client"
+  "https://localhost/api/sse/stream?clientId=test-client"
 
-# 廣播訊息
-curl -k -X POST https://localhost:443/api/sse/broadcast \
+# 廣播訊息 (HTTPS)
+curl -k -X POST https://localhost/api/sse/broadcast \
   -H "Content-Type: application/json" \
   -d '{"type":"MESSAGE","data":{"text":"Hello World"}}'
 ```
@@ -201,23 +243,23 @@ curl -k -X POST https://localhost:443/api/sse/broadcast \
 
 ## ⚙️ 配置說明
 
-### 環境變數
-```env
-# Redis配置
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# 伺服器配置
-SERVER_PORT=8080
-HTTPS_PORT=8443
-
-# 實例標識
-INSTANCE_NAME=backend-1
+### 🔷 開發環境配置
+```yaml
+# docker-compose.yml
+services:
+  backend-1:
+    ports:
+      - "8080:8080"    # HTTP
+  nginx:
+    ports:
+      - "80:80"        # HTTP
+  redis:
+    image: redis:7-alpine
 ```
 
-### Docker設定
+### 🔶 生產環境配置  
 ```yaml
-# HTTP/2模式
+# docker-compose-prod.yml
 services:
   backend-1:
     ports:
@@ -227,6 +269,33 @@ services:
     ports:
       - "80:80"        # HTTP
       - "443:443"      # HTTPS
+  redis:
+    environment:
+      - REDIS_PASSWORD=your_secure_password
+  redis-commander:
+    ports:
+      - "8090:8081"    # Redis管理界面
+```
+
+### 環境變數
+```env
+# Redis配置
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=your_secure_password  # 僅生產環境
+
+# 伺服器配置
+SERVER_PORT=8080  # 開發環境
+SERVER_PORT=8443  # 生產環境
+
+# SSL配置 (僅生產環境)
+SSL_ENABLED=true
+SSL_KEYSTORE=classpath:ssl/keystore.p12
+SSL_KEYSTORE_PASSWORD=changeit
+
+# 實例標識
+INSTANCE_ID=backend-1
+INSTANCE_NAME=Backend-1
 ```
 
 ## 🎯 技術亮點
@@ -237,8 +306,9 @@ services:
 - HTTPS訪問 → 連接8443/8444/8445端口
 
 ### 🔒 安全特性
-- 自動SSL證書生成
+- 自動SSL證書生成 (`scripts\generate-ssl-certs.bat`)
 - HTTPS端到端加密
+- Redis密碼保護 (生產環境)
 - 現代安全頭部設置
 - CORS跨域保護
 
@@ -247,42 +317,55 @@ services:
 - Nginx負載均衡
 - Redis快速同步
 - WebFlux非阻塞架構
+- Redis數據持久化
+
+### 🎛️ 環境分離
+- **開發環境**: 快速啟動，無SSL配置需求
+- **生產環境**: 完整安全配置，HTTP/2支援，數據持久化
 
 ## 🐛 故障排除
 
 ### 常見問題
 
-#### 1. 端口衝突
+#### 1. SSL證書問題 (生產環境)
+```bash
+# 生成SSL證書
+scripts\generate-ssl-certs.bat
+
+# 檢查證書是否存在
+dir backend\src\main\resources\ssl\
+dir nginx\ssl\
+```
+
+#### 2. 端口衝突
 ```bash
 # 檢查端口使用
 netstat -an | findstr :443
 # 停止衝突服務
-docker-compose down
-```
-
-#### 2. SSL證書問題
-```bash
-# 重新生成證書
-docker-compose up --build frontend
+docker-compose -f docker-compose-prod.yml down
 ```
 
 #### 3. Redis連接失敗
 ```bash
-# 檢查Redis狀態
+# 檢查Redis狀態 (開發環境)
 docker logs sse-distributed-demo-redis-1
+
+# 檢查Redis狀態 (生產環境)
+docker logs redis-server
 ```
 
 #### 4. 容器健康檢查失敗
 ```bash
 # 查看詳細日誌
 docker-compose logs backend-1
+docker-compose -f docker-compose-prod.yml logs backend-1
 ```
 
 ## 📈 效能指標
 
 ### 預期效能
 - **並發連接**: 1000+ SSE連接
-- **訊息延遲**: <50ms
+- **訊息延遲**: <50ms (HTTP), <30ms (HTTP/2)
 - **記憶體使用**: ~200MB per instance
 - **CPU使用**: <10% per instance
 
@@ -290,6 +373,21 @@ docker-compose logs backend-1
 - **水平擴展**: 支援添加更多backend實例
 - **負載均衡**: Nginx自動分發請求
 - **狀態同步**: Redis確保資料一致性
+- **協議升級**: HTTP/1.1 → HTTP/2 平滑遷移
+
+## 🎉 最近更新
+
+### ✅ 項目結構優化 (2024)
+- **簡化Docker配置**: 從3個配置文件整合為2個
+  - 移除: `docker-compose-http2.yml`, `docker-compose-redis-secure.yml`
+  - 保留: `docker-compose.yml` (開發), `docker-compose-prod.yml` (生產)
+- **統一SSL管理**: `scripts\generate-ssl-certs.bat` 一鍵生成所有證書
+- **環境分離**: 清晰的開發/生產環境劃分
+
+### 🔒 安全增強
+- **生產環境**: Redis密碼保護、數據持久化
+- **SSL證書**: 自動生成Nginx和Spring Boot所需證書
+- **HTTP/2支援**: 完整的HTTP/2協議實現
 
 ## 🤝 貢獻指南
 
