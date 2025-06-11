@@ -29,7 +29,7 @@
 ### 🔷 開發環境架構 (HTTP)
 ```
 ┌─────────────────┐    HTTP/1.1         ┌──────────────────┐
-│   React前端     │ ───────────────────► │  Nginx負載均衡器   │
+│   React前端      │ ───────────────────► │  Nginx負載均衡器   │
 │  localhost:3000 │                     │   localhost:80    │
 └─────────────────┘                     └──────────────────┘
                                                    │
@@ -85,6 +85,8 @@
 ```bash
 # 1. 生成SSL證書 (首次運行必須)
 scripts\generate-ssl-certs.bat
+# 或使用 Docker 版本（推薦）
+scripts\generate-ssl-docker.bat
 
 # 2. 啟動生產環境
 docker-compose -f docker-compose-prod.yml up --build -d
@@ -250,6 +252,8 @@ services:
   backend-1:
     ports:
       - "8080:8080"    # HTTP
+    environment:
+      - SPRING_DATA_REDIS_PASSWORD=  # 空密碼
   nginx:
     ports:
       - "80:80"        # HTTP
@@ -265,6 +269,8 @@ services:
     ports:
       - "8080:8080"    # HTTP
       - "8443:8443"    # HTTPS
+    environment:
+      - SPRING_DATA_REDIS_PASSWORD=your_secure_password
   nginx:
     ports:
       - "80:80"        # HTTP
@@ -350,8 +356,22 @@ docker-compose -f docker-compose-prod.yml down
 # 檢查Redis狀態 (開發環境)
 docker logs sse-distributed-demo-redis-1
 
-# 檢查Redis狀態 (生產環境)
+# 檢查Redis狀態 (生產環境)  
 docker logs redis-server
+```
+
+#### 4. Redis認證錯誤 (NOAUTH)
+如果遇到 `NOAUTH HELLO must be called with the client already authenticated` 錯誤：
+
+```bash
+# 確認開發環境配置包含空密碼
+# docker-compose.yml 中應該有：
+environment:
+  - SPRING_DATA_REDIS_PASSWORD=
+
+# 重新啟動服務
+docker-compose down
+docker-compose up --build -d
 ```
 
 #### 4. 容器健康檢查失敗

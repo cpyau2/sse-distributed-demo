@@ -42,4 +42,21 @@ logs/
 .env.*.local
 
 # Cursor specific
-.cursor/ 
+.cursor/
+
+# SSL Certificates and Keystores - NEVER commit these!
+*.key
+*.crt
+*.pem
+*.p12
+*.jks
+*.pfx
+backend/src/main/resources/ssl/
+nginx/ssl/
+ssl/
+certificates/
+
+# Sensitive configuration files
+**/ssl/
+**/*keystore*
+**/*truststore* 

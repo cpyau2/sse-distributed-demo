@@ -105,6 +105,25 @@ generate-ssl-certs.bat
 
 ---
 
+#### **6.1 generate-ssl-docker.bat** - Docker 版 SSL 證書生成
+**功能**: 使用 Docker 容器生成 SSL 證書（推薦）
+- ✅ 使用 alpine/openssl 鏡像生成 Nginx 證書
+- ✅ 使用 openjdk:21-jdk 鏡像生成 Spring Boot Keystore
+- ✅ 無需本地安裝 OpenSSL 或 Java
+- ✅ 跨平台兼容性更好
+
+**使用方法**:
+```bash
+generate-ssl-docker.bat
+```
+
+**優勢**: 
+- 🐳 純 Docker 方案，無需本地工具
+- 🔄 自動清理舊證書
+- ✅ 完全自動化過程
+
+---
+
 #### **7. redis-management.bat** - Redis 管理工具
 **功能**: Redis 資料庫管理操作
 - ✅ 啟動/停止 Redis

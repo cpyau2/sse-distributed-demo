@@ -150,6 +150,9 @@ services:
       - backend-3
     networks:
       - sse-network
+    volumes:
+      - ./nginx/nginx-http2.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
 
   frontend:
     build:

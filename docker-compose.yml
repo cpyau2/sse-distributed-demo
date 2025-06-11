@@ -25,6 +25,7 @@ services:
       - INSTANCE_NAME=Backend-1
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=
       - SPRING_DATA_REDIS_TIMEOUT=5000
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -50,6 +51,7 @@ services:
       - INSTANCE_NAME=Backend-2
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=
       - SPRING_DATA_REDIS_TIMEOUT=5000
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -75,6 +77,7 @@ services:
       - INSTANCE_NAME=Backend-3
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=
       - SPRING_DATA_REDIS_TIMEOUT=5000
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:

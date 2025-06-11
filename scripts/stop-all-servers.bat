@@ -1,10 +1,17 @@
 @echo off
+
 echo Stopping All SSE Demo Services
 echo ===============================
 
 echo.
 echo 1. Stopping Docker containers...
-docker-compose down
+if exist docker-compose-prod.yml (
+    echo Detected docker-compose-prod.yml, stopping prod containers...
+    docker-compose -f docker-compose-prod.yml down
+) else (
+    echo No docker-compose-prod.yml found, stopping default containers...
+    docker-compose down
+)
 
 echo.
 echo 2. Stopping Java processes...
