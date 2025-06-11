@@ -89,8 +89,8 @@ monitor-servers.bat
 
 ---
 
-#### **6. generate-ssl-certs.bat** - SSL 證書生成
-**功能**: 生成 HTTPS 所需的 SSL 證書
+#### **6. generate-ssl-certs.bat** - 傳統 SSL 證書生成 🔧 備選
+**功能**: 使用本地工具生成 SSL 證書（無Docker環境時使用）
 - ✅ 生成 Nginx SSL 證書 (server.key, server.crt)
 - ✅ 生成 Spring Boot Keystore (keystore.p12)  
 - ✅ 自動配置證書路徑
@@ -105,8 +105,8 @@ generate-ssl-certs.bat
 
 ---
 
-#### **6.1 generate-ssl-docker.bat** - Docker 版 SSL 證書生成
-**功能**: 使用 Docker 容器生成 SSL 證書（推薦）
+#### **6.1 generate-ssl-docker.bat** - Docker 版 SSL 證書生成 ⭐ 推薦
+**功能**: 使用 Docker 容器生成 SSL 證書（首選方案）
 - ✅ 使用 alpine/openssl 鏡像生成 Nginx 證書
 - ✅ 使用 openjdk:21-jdk 鏡像生成 Spring Boot Keystore
 - ✅ 無需本地安裝 OpenSSL 或 Java

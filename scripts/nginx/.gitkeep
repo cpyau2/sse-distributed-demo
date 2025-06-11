@@ -1,0 +1,2 @@
+# This file ensures the scripts/nginx directory is preserved in Git
+# SSL certificates generated here will be ignored by .gitignore 

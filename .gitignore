@@ -3,6 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
 
 # Java
 *.class
@@ -13,6 +14,7 @@ yarn-error.log*
 build/
 out/
 target/
+.gradletasknamecache
 
 # IDE
 .idea/
@@ -20,26 +22,40 @@ target/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
 
 # OS
 .DS_Store
 Thumbs.db
+*.orig
 
 # Docker
 .docker/
+docker-compose.override.yml
+
+# Docker volumes and data
+redis_data/
+**/data/
 
 # Logs
 *.log
 logs/
+nohup.out
 
 # Temporary files
 *.tmp
 *.temp
+*.bak
+*.backup
 
 # Environment variables
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
 
 # Cursor specific
 .cursor/
@@ -51,12 +67,37 @@ logs/
 *.p12
 *.jks
 *.pfx
+*.cer
+*.der
 backend/src/main/resources/ssl/
 nginx/ssl/
 ssl/
 certificates/
+scripts/nginx/ssl/
+scripts/backend/src/main/resources/ssl/
 
 # Sensitive configuration files
 **/ssl/
 **/*keystore*
-**/*truststore* 
+**/*truststore*
+**/certificates/
+
+# Redis data and config
+redis.conf
+dump.rdb
+appendonly.aof
+
+# Script-generated files
+scripts/backend/src/
+scripts/nginx/ssl/
+
+# Test and coverage reports
+coverage/
+*.coverage
+test-results/
+junit.xml
+
+# Application specific
+application-local.yml
+application-prod.yml
+application-secret.yml 
