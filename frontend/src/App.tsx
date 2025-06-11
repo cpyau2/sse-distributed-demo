@@ -3,6 +3,19 @@ import axios from 'axios'
 import { format } from 'date-fns'
 import './App.css'
 
+// 安全的日期格式化函數
+const safeFormatDate = (dateString: string | undefined | null, formatString: string, fallback: string = '未知') => {
+  if (!dateString) return fallback
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return fallback
+    return format(date, formatString)
+  } catch (error) {
+    console.warn('Date formatting error:', error)
+    return fallback
+  }
+}
+
 interface SseMessage {
   id: string
   type: string
@@ -66,6 +79,7 @@ const App: React.FC = () => {
   const [autoScroll, setAutoScroll] = useState(true)
   const [showMetrics, setShowMetrics] = useState(false)
   const [showConnections, setShowConnections] = useState(false)
+  const [autoRefresh, setAutoRefresh] = useState(true)
   const [directMessageTarget, setDirectMessageTarget] = useState('')
   const [directMessageContent, setDirectMessageContent] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -85,17 +99,30 @@ const App: React.FC = () => {
   const connectToServer = useCallback((serverIndex: number) => {
     const server = servers[serverIndex]
     
-    // Close existing connection
+    // 更嚴格的連接關閉邏輯
     if (server.eventSource) {
+      console.log(`Closing existing connection to ${server.name}`)
       server.eventSource.close()
+      // 等待一段時間確保連接完全關閉
+      setTimeout(() => {
+        createNewConnection(serverIndex)
+      }, 100)
+    } else {
+      createNewConnection(serverIndex)
     }
+  }, [servers])
 
+  const createNewConnection = (serverIndex: number) => {
+    const server = servers[serverIndex]
+    console.log(`Creating new connection to ${server.name}`)
+    
     const eventSource = new EventSource(
       `${server.url}/api/sse/stream?clientId=${clientId.current}`
     )
 
+    // 添加連接狀態日誌
     eventSource.onopen = () => {
-      console.log(`Connected to ${server.name}`)
+      console.log(`✅ Successfully connected to ${server.name}`)
       setServers(prev => {
         const updated = [...prev]
         updated[serverIndex] = { 
@@ -111,7 +138,7 @@ const App: React.FC = () => {
     }
 
     eventSource.onerror = (error) => {
-      console.error(`Error with ${server.name}:`, error)
+      console.error(`❌ Error with ${server.name}:`, error)
       setServers(prev => {
         const updated = [...prev]
         updated[serverIndex] = { 
@@ -123,11 +150,21 @@ const App: React.FC = () => {
       })
     }
 
-    // Handle different event types
+    // Handle different event types with source logging
     const handleEvent = (event: MessageEvent) => {
       try {
         const message: SseMessage = JSON.parse(event.data)
-        setMessages(prev => [...prev.slice(-99), message]) // Keep last 100 messages
+        console.log(`📨 Message from ${message.source}:`, message)
+        
+        // 添加去重邏輯：檢查是否已經有相同ID的訊息
+        setMessages(prev => {
+          const isDuplicate = prev.some(existingMsg => existingMsg.id === message.id)
+          if (isDuplicate) {
+            console.log(`🔄 Duplicate message detected, skipping: ${message.id}`)
+            return prev
+          }
+          return [...prev.slice(-99), message]
+        })
       } catch (error) {
         console.error('Error parsing message:', error)
       }
@@ -143,7 +180,7 @@ const App: React.FC = () => {
       updated[serverIndex] = { ...updated[serverIndex], eventSource }
       return updated
     })
-  }, [servers])
+  }
 
   const disconnectFromServer = useCallback((serverIndex: number) => {
     const server = servers[serverIndex]
@@ -272,10 +309,12 @@ const App: React.FC = () => {
   }
 
   useEffect(() => {
-    // Auto-refresh metrics every 5 seconds
-    const interval = setInterval(fetchAllMetrics, 5000)
-    return () => clearInterval(interval)
-  }, [servers])
+    // Auto-refresh metrics every 10 seconds (only if enabled)
+    if (autoRefresh) {
+      const interval = setInterval(fetchAllMetrics, 10000)
+      return () => clearInterval(interval)
+    }
+  }, [servers, autoRefresh])
 
   const formatUptime = (ms: number) => {
     const seconds = Math.floor(ms / 1000)
@@ -320,6 +359,9 @@ const App: React.FC = () => {
               <button onClick={() => setShowConnections(!showConnections)}>
                 {showConnections ? '隱藏' : '顯示'}連接資訊
               </button>
+              <button onClick={() => setAutoRefresh(!autoRefresh)}>
+                {autoRefresh ? '🔄 停止自動刷新' : '▶️ 開始自動刷新'}
+              </button>
             </div>
           </div>
           
@@ -360,7 +402,7 @@ const App: React.FC = () => {
                               <strong>ID:</strong> {client.clientId}
                               {client.clientId === clientId.current && ' (You)'}
                             </p>
-                            <p><strong>連接時間:</strong> {format(new Date(client.connectedAt), 'HH:mm:ss')}</p>
+                            <p><strong>連接時間:</strong> {safeFormatDate(client.connectedAt, 'HH:mm:ss')}</p>
                             {client.clientId !== clientId.current && (
                               <button 
                                 onClick={() => sendDirectMessage(client.clientId)}
@@ -490,7 +532,7 @@ const App: React.FC = () => {
                   </span>
                   <span className="message-source">來源: {msg.source}</span>
                   <span className="message-time">
-                    {format(new Date(msg.timestamp), 'HH:mm:ss.SSS')}
+                    {safeFormatDate(msg.timestamp, 'HH:mm:ss.SSS', '未知時間')}
                   </span>
                 </div>
                 <div className="message-content">
