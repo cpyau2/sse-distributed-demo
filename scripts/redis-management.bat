@@ -35,10 +35,11 @@ echo Redis已啟動 (無密碼保護)
 goto menu
 
 :start_redis_prod
-echo 啟動Redis (生產環境 - 安全模式)...
+echo 啟動Redis (生產環境)...
 docker-compose -f docker-compose-prod.yml up redis redis-commander -d
-echo Redis已啟動 (密碼保護 + 管理界面)
+echo Redis已啟動 (開發配置 + 管理界面)
 echo Redis Commander: http://localhost:8090
+echo ⚠️ 注意: 當前使用無密碼配置，適合開發測試
 goto menu
 
 :stop_redis
@@ -60,13 +61,13 @@ docker exec -it sse-distributed-demo-redis-1 redis-cli ping 2>nul || echo "開�
 
 echo.
 echo === 連接測試 (生產環境) ===
-docker exec -it redis-server redis-cli -a your_secure_password ping 2>nul || echo "生產環境Redis未運行"
+docker exec -it redis-server redis-cli ping 2>nul || echo "生產環境Redis未運行"
 goto menu
 
 :redis_cli
 echo 選擇Redis環境:
 echo 1) 開發環境 (無密碼)
-echo 2) 生產環境 (需密碼)
+echo 2) 生產環境 (當前也是無密碼)
 set /p env_choice="請選擇 (1-2): "
 
 if "%env_choice%"=="1" (
@@ -74,7 +75,7 @@ if "%env_choice%"=="1" (
     docker exec -it sse-distributed-demo-redis-1 redis-cli
 ) else if "%env_choice%"=="2" (
     echo 連接到生產環境Redis CLI...
-    docker exec -it redis-server redis-cli -a your_secure_password
+    docker exec -it redis-server redis-cli
 ) else (
     echo 無效選擇
 )
@@ -108,7 +109,7 @@ if "%backup_choice%"=="1" (
     docker exec sse-distributed-demo-redis-1 redis-cli BGSAVE
     echo 開發環境備份已啟動
 ) else if "%backup_choice%"=="2" (
-    docker exec redis-server redis-cli -a your_secure_password BGSAVE
+    docker exec redis-server redis-cli BGSAVE
     echo 生產環境備份已啟動
 ) else (
     echo 無效選擇
@@ -131,7 +132,7 @@ if /i "%confirm%"=="y" (
         docker exec sse-distributed-demo-redis-1 redis-cli FLUSHALL
         echo 開發環境數據已清除
     ) else if "!clean_choice!"=="2" (
-        docker exec redis-server redis-cli -a your_secure_password FLUSHALL
+        docker exec redis-server redis-cli FLUSHALL
         echo 生產環境數據已清除
     )
 ) else (

@@ -27,16 +27,24 @@ echo ================================
 echo 1. 檢查SSL證書...
 if not exist "backend\src\main\resources\ssl\keystore.p12" (
     echo ❌ 缺少Spring Boot SSL證書
-    echo 請先運行: scripts\generate-ssl-certs.bat
-    pause
-    exit /b 1
+    echo 正在自動生成SSL證書...
+    call scripts\generate-ssl-docker.bat
+    if not exist "backend\src\main\resources\ssl\keystore.p12" (
+        echo ❌ SSL證書生成失敗，請手動運行: scripts\generate-ssl-docker.bat
+        pause
+        exit /b 1
+    )
 )
 
 if not exist "nginx\ssl\server.crt" (
     echo ❌ 缺少Nginx SSL證書
-    echo 請先運行: scripts\generate-ssl-certs.bat
-    pause
-    exit /b 1
+    echo 正在自動生成SSL證書...
+    call scripts\generate-ssl-docker.bat
+    if not exist "nginx\ssl\server.crt" (
+        echo ❌ SSL證書生成失敗，請手動運行: scripts\generate-ssl-docker.bat
+        pause
+        exit /b 1
+    )
 )
 
 echo ✅ SSL證書檢查通過

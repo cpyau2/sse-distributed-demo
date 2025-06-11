@@ -8,10 +8,9 @@ services:
     ports:
       - "6379:6379"
     environment:
-      - REDIS_PASSWORD=your_secure_password
+      - REDIS_PASSWORD=
     command: >
       redis-server 
-      --requirepass your_secure_password
       --appendonly yes
       --maxmemory 512mb
       --maxmemory-policy allkeys-lru
@@ -21,7 +20,7 @@ services:
     networks:
       - sse-network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "your_secure_password", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,7 +33,7 @@ services:
     ports:
       - "8090:8081"
     environment:
-      - REDIS_HOSTS=local:redis:6379:0:your_secure_password
+      - REDIS_HOSTS=local:redis:6379:0
     depends_on:
       redis:
         condition: service_healthy
@@ -54,7 +53,7 @@ services:
       - INSTANCE_NAME=Backend-1
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=your_secure_password
+      - SPRING_DATA_REDIS_PASSWORD=
       - SPRING_DATA_REDIS_TIMEOUT=5000
       - SPRING_PROFILES_ACTIVE=docker,http2,secure
       - SSL_ENABLED=true
@@ -62,6 +61,8 @@ services:
       - SSL_KEYSTORE_PASSWORD=changeit
       - SSL_KEYSTORE_TYPE=PKCS12
       - SSL_KEY_ALIAS=sse-demo
+      - SPRING_REDIS_LETTUCE_SHUTDOWN_TIMEOUT=200ms
+      - SPRING_REDIS_LETTUCE_POOL_MAX_ACTIVE=20
     depends_on:
       redis:
         condition: service_healthy
@@ -86,7 +87,7 @@ services:
       - INSTANCE_NAME=Backend-2
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=your_secure_password
+      - SPRING_DATA_REDIS_PASSWORD=
       - SPRING_DATA_REDIS_TIMEOUT=5000
       - SPRING_PROFILES_ACTIVE=docker,http2,secure
       - SSL_ENABLED=true
@@ -94,6 +95,8 @@ services:
       - SSL_KEYSTORE_PASSWORD=changeit
       - SSL_KEYSTORE_TYPE=PKCS12
       - SSL_KEY_ALIAS=sse-demo
+      - SPRING_REDIS_LETTUCE_SHUTDOWN_TIMEOUT=200ms
+      - SPRING_REDIS_LETTUCE_POOL_MAX_ACTIVE=20
     depends_on:
       redis:
         condition: service_healthy
@@ -118,7 +121,7 @@ services:
       - INSTANCE_NAME=Backend-3
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=your_secure_password
+      - SPRING_DATA_REDIS_PASSWORD=
       - SPRING_DATA_REDIS_TIMEOUT=5000
       - SPRING_PROFILES_ACTIVE=docker,http2,secure
       - SSL_ENABLED=true
@@ -126,6 +129,8 @@ services:
       - SSL_KEYSTORE_PASSWORD=changeit
       - SSL_KEYSTORE_TYPE=PKCS12
       - SSL_KEY_ALIAS=sse-demo
+      - SPRING_REDIS_LETTUCE_SHUTDOWN_TIMEOUT=200ms
+      - SPRING_REDIS_LETTUCE_POOL_MAX_ACTIVE=20
     depends_on:
       redis:
         condition: service_healthy
