@@ -222,6 +222,81 @@ button {
   background: #0b7dda;
 }
 
+/* Auto Assign Button */
+.auto-assign-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.auto-assign-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.auto-assign-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auto-assign-btn:active {
+  transform: translateY(0);
+}
+
+/* Server Mode Select */
+.server-mode-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid #667eea;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+  color: #333;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.server-mode-select:focus {
+  outline: none;
+  border-color: #5a67d8;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.server-mode-select:hover {
+  border-color: #5a67d8;
+}
+
+/* Auto Assigned Server Card */
+.server-card.auto-assigned {
+  border: 2px solid #667eea;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8edff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.server-card.auto-assigned::before {
+  content: '🎯';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+.server-card.auto-assigned.connected {
+  border-color: #4CAF50;
+  background: linear-gradient(135deg, #f0fff4 0%, #dcfce7 100%);
+}
+
+.server-card.auto-assigned.connected::before {
+  content: '✅';
+}
+
 /* Broadcast Section */
 .broadcast-section {
   background: white;
