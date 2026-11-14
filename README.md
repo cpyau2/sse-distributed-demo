@@ -19,9 +19,9 @@ to any instance still receives every message.
 Java · Spring Boot WebFlux · Gradle · React · TypeScript · Redis · Nginx · Docker Compose
 
 ### Quick start
-\`\`\`bash
+```bash
 docker compose up -d
-\`\`\`
+```
 Then open http://localhost:3000.
 
 > Personal project, built solo with AI-assisted development.
