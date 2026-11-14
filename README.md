@@ -1,3 +1,33 @@
+# SSE Distributed Demo
+
+**English** | [中文](#sse-分散式部署研究平台)
+
+A research platform for running **Server-Sent Events (SSE)** in a distributed deployment.
+Several Spring Boot WebFlux backend instances sit behind an Nginx load balancer and use
+Redis to keep messages and connection state in sync across instances, so a client connected
+to any instance still receives every message.
+
+### Features
+- **Distributed SSE:** three load-balanced backend instances, scalable horizontally
+- **Messaging:** broadcast, point-to-point private messages, and server-to-server directed messages
+- **HTTP/1.1 and HTTP/2**, with automatic SSL certificate generation for HTTPS
+- **Monitoring:** live metrics (memory, active connections, message rates, latency) and health checks
+- **Two environments:** HTTP for development, HTTPS/HTTP2 for production
+- **One-command deployment** with Docker Compose
+
+### Tech stack
+Java · Spring Boot WebFlux · Gradle · React · TypeScript · Redis · Nginx · Docker Compose
+
+### Quick start
+\`\`\`bash
+docker compose up -d
+\`\`\`
+Then open http://localhost:3000.
+
+> Personal project, built solo with AI-assisted development.
+
+---
+
 # SSE 分散式部署研究平台
 
 > 基於Spring Boot WebFlux + React TypeScript + Redis的現代化Server-Sent Events(SSE)分散式系統研究平台
